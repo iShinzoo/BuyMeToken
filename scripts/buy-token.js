@@ -1,65 +1,67 @@
-const hre = require("hardhat");
+const { ethers } = require("hardhat");
 
 async function getBalance(address) {
-  const balanceBigInt = await hre.waffle.provider.getBalance(address);
-  return hre.ethers.utils.formatEther(balanceBigInt);    
+  const balanceBigInt = await ethers.provider.getBalance(address);
+  return ethers.formatEther(balanceBigInt); // Use ethers.formatEther directly
 }
 
 async function printBalances(addresses) {
-    let idx = 0;
-    for (const address of addresses) {
-        console.log(`Balance of ${address} is ${await getBalance(address)}`);
-        idx++;
-    }   
+  for (let i = 0; i < addresses.length; i++) {
+    console.log(`Address ${i} balance: ${await getBalance(addresses[i])}`);
+  }
 }
 
-async function printMemos(memos){
-    for (const memo of memos) {
-        const timestamp = memo.timestamp;
-        const tipper = memo.name;
-        const tipperAddress = memo.from;
-        const message = memo.message;
-        console.log(`At ${timestamp}, ${tipper} (${tipperAddress}) said: "${message}"`);
-    }
+async function printMemos(memos) {
+  for (const memo of memos) {
+    const timestamp = memo.timestamp;
+    const tipper = memo.name;
+    const tipperAddress = memo.from;
+    const message = memo.message;
+    console.log(
+      `At ${timestamp}, ${tipper} (${tipperAddress}) said: "${message}"`
+    );
+  }
 }
 
-async function main() { 
+async function main() {
+  const [owner, tipper, tipper1, tipper2] = await ethers.getSigners();
 
-    const [owner, tipper, tipper1, tipper2] = await hre.ethers.getSigners();
+  const BuyMeToken = await ethers.getContractFactory("BuyMeToken");
+  const buyMeToken = await BuyMeToken.deploy();
 
-    const BuyMeAToken = await hre.ethers.getContractFactory("BuyMeAToken");
-    const buyMeAToken = await BuyMeAToken.deploy();
+  // Wait for the contract to be fully deployed
+  await buyMeToken.waitForDeployment();
 
-    await buyMeAToken.deployed();
-    console.log("Contract deployed to:", buyMeAToken.address);
+  // Get the deployed contract address
+  const address = await buyMeToken.getAddress();
+  console.log("Contract deployed to: ", address);
 
-    const addresses = [owner.address, tipper.address, buyMeAToken.address];
+  const addresses = [owner.address, tipper.address, address]; // Use the resolved address
 
-    console.log("== start ==");
-    await printBalances(addresses);
+  console.log("== start ==");
+  await printBalances(addresses);
 
-    const tip = {value: hre.ethers.utils.parseEther("1")};
-    await buyMeAToken.connect(tipper).buyToken("Krishna","you are the best", tip); 
-    await buyMeAToken.connect(tipper1).buyToken("KK","you are the op", tip); 
-    await buyMeAToken.connect(tipper2).buyToken("Krsna","you are the beast", tip); 
+  const tip = { value: ethers.parseEther("1") }; // Use ethers.parseEther directly
+  await buyMeToken.connect(tipper).buyToken("Krishna", "you are the best", tip);
+  await buyMeToken.connect(tipper1).buyToken("KK", "you are the op", tip);
+  await buyMeToken.connect(tipper2).buyToken("Krsna", "you are the beast", tip);
 
-    console.log("== bought token ==");
-    await printBalances(addresses);
+  console.log("== bought token ==");
+  await printBalances(addresses);
 
-    await buyMeAToken.connect(owner).withdrawTips();
+  await buyMeToken.connect(owner).withdrawTips();
 
-    console.log("== withdraw tips =="); 
-    await printBalances(addresses);
+  console.log("== withdraw tips ==");
+  await printBalances(addresses);
 
-    console.log("== memos ==");
-    const memos = await buyMeAToken.getMemos();
-    printMemos(memos);
-
+  console.log("== memos ==");
+  const memos = await buyMeToken.getMemos();
+  printMemos(memos);
 }
 
 main()
-    .then(() => process.exit(0))
-    .catch(error => {
-        console.error(error);
-        process.exit(1);
-    });
+  .then(() => process.exit(0))
+  .catch((error) => {
+    console.error(error);
+    process.exit(1);
+  });

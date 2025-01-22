@@ -1,6 +1,9 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.28;
 
+
+// deployed to sepolia at 0xB72E17d82F505976569F6E513D5a60E9fa35a417
+
 contract BuyMeToken {
 
     struct Memo {

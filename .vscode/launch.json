@@ -1,0 +1,17 @@
+{
+    "configurations": [
+        {
+            "type": "node",
+            "request": "launch",
+            "name": "Launch Hardhat Script",
+            "program": "${workspaceFolder}/scripts/buy-token.js",
+            "runtimeExecutable": "npx",
+            "runtimeArgs": [
+                "hardhat",
+                "run"
+            ],
+            "cwd": "${workspaceFolder}",
+            "internalConsoleOptions": "neverOpen"
+        }
+    ]
+}
