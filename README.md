@@ -46,19 +46,16 @@ A decentralized platform where supporters can send you tokens as appreciation, s
    cd buymetoken
    ```
 
-  ## Install dependencies
+2. **Install dependencies**
+   ``` bash
+   # Frontend
+   cd client
+   npm install
 
-``` bash
-Copy
-# Frontend
-cd client
-npm install
-
-# Smart Contracts
-cd ../hardhat
-npm install
-```
-
+   # Smart Contracts
+   cd ../hardhat
+   npm install
+   ```
 
 ## Contributing
 * Fork the repository
