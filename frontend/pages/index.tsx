@@ -1,6 +1,8 @@
 import React, { useEffect, useState } from "react";
-import { BrowserProvider, Contract, parseEther } from "ethers";
+import { Contract, parseEther, BrowserProvider } from "ethers";
 import { motion, AnimatePresence } from "framer-motion";
+import { ConnectButton } from '@rainbow-me/rainbowkit';
+import { useAccount, usePublicClient, useWalletClient} from 'wagmi';
 import abi from "../utils/BuyMeToken.json";
 import {
   ChevronDown,
@@ -11,17 +13,14 @@ import {
   UserCircle,
 } from "lucide-react";
 
-declare global {
-  interface Window {
-    ethereum: any;
-  }
-}
-
 export default function Home() {
   const contractAddress = "0xB72E17d82F505976569F6E513D5a60E9fa35a417";
   const contractABI = abi.abi;
 
-  const [currentAccount, setCurrentAccount] = useState("");
+  const { address } = useAccount();
+  const { data: walletClient } = useWalletClient();
+  const publicClient = usePublicClient();
+
   const [name, setName] = useState("");
   const [message, setMessage] = useState("");
   interface Memo {
@@ -33,7 +32,6 @@ export default function Home() {
   const [activeSection, setActiveSection] = useState("send");
   const [memos, setMemos] = useState<Memo[]>([]);
   const [loading, setLoading] = useState(false);
-  const [showMoreMemos, setShowMoreMemos] = useState(false);
 
   const onNameChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     setName(event.target.value);
@@ -43,48 +41,25 @@ export default function Home() {
     setMessage(event.target.value);
   };
 
-  const isWalletConnected = async () => {
-    try {
-      const { ethereum } = window;
-      if (!ethereum) {
-        console.log("Please install MetaMask");
-        return;
-      }
-      const accounts = await ethereum.request({ method: "eth_accounts" });
-      if (accounts.length > 0) {
-        setCurrentAccount(accounts[0]);
-      }
-    } catch (error) {
-      console.log("error: ", error);
-    }
+   // Get ethers provider and signer
+   const getEthersProvider = () => {
+    if (!publicClient) return null;
+    return new BrowserProvider(publicClient.transport);
   };
 
-  const connectWallet = async () => {
-    try {
-      const { ethereum } = window;
-      if (!ethereum) {
-        console.log("Please install MetaMask");
-        return;
-      }
-      const accounts = await ethereum.request({
-        method: "eth_requestAccounts",
-      });
-      setCurrentAccount(accounts[0]);
-    } catch (error) {
-      console.log(error);
-    }
+  const getSigner = async () => {
+    if (!walletClient) return null;
+    return new BrowserProvider(walletClient.transport).getSigner();
   };
 
   const buyToken = async () => {
     try {
-      const { ethereum } = window;
-      if (!ethereum) {
-        console.log("Please install MetaMask");
+      const signer = await getSigner();
+      if (!signer) {
+        console.log("No signer available");
         return;
       }
       setLoading(true);
-      const provider = new BrowserProvider(ethereum);
-      const signer = await provider.getSigner();
       const buyMeToken = new Contract(contractAddress, contractABI, signer);
 
       const tokenTxn = await buyMeToken.buyToken(
@@ -105,24 +80,20 @@ export default function Home() {
 
   const getMemos = async () => {
     try {
-      const { ethereum } = window;
-      if (!ethereum) {
-        console.log("Metamask is not connected");
-        return;
-      }
+      const provider = publicClient;
+      if (!provider) return;
       setLoading(true);
-      const provider = new BrowserProvider(ethereum);
-      const signer = await provider.getSigner();
-      const buyMeToken = new Contract(contractAddress, contractABI, signer);
-
+      const ethersProvider = new BrowserProvider(provider.transport);
+      const buyMeToken = new Contract(contractAddress, contractABI, ethersProvider);
       const memos = await buyMeToken.getMemos();
+      
       const formattedMemos = memos.map((memo: any) => ({
         address: memo.from,
         timestamp: new Date(Number(memo.timestamp) * 1000),
         message: memo.message,
         name: memo.name,
       }));
-      // Sort memos by timestamp (newest first)
+      
       formattedMemos.sort((a: Memo, b: Memo) => b.timestamp.getTime() - a.timestamp.getTime());
       setMemos(formattedMemos);
       setLoading(false);
@@ -138,12 +109,10 @@ export default function Home() {
 
   useEffect(() => {
     let buyMeToken: Contract;
-    isWalletConnected();
+    let provider: BrowserProvider | null = null;
     getMemos();
 
-    const { ethereum } = window;
-    if (ethereum) {
-      const provider = new BrowserProvider(ethereum);
+    if (provider) {
       buyMeToken = new Contract(contractAddress, contractABI, provider);
 
       const onNewMemo = (
@@ -159,7 +128,6 @@ export default function Home() {
           message,
           name,
         };
-        // Add new memo to the top of the list
         setMemos((prevState) => [newMemo, ...prevState]);
       };
 
@@ -171,7 +139,7 @@ export default function Home() {
         }
       };
     }
-  }, []);
+  }, [publicClient]);
 
   return (
     <div className="min-h-screen bg-[#0F0F0F] text-white flex items-center justify-center p-4">
@@ -212,17 +180,14 @@ export default function Home() {
           animate={{ scale: 1, opacity: 1 }}
           className="col-span-6 bg-[#1A1A1A] rounded-2xl p-6"
         >
-          {!currentAccount ? (
+          {!address ? (
             <div className="flex flex-col items-center justify-center h-full space-y-4">
               <h2 className="text-2xl font-bold">Connect Your Wallet</h2>
-              <motion.button
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                onClick={connectWallet}
-                className="bg-gradient-to-r from-blue-600 to-purple-600 py-3 px-6 rounded-xl text-white font-bold"
-              >
-                Connect Wallet
-              </motion.button>
+              <ConnectButton 
+                showBalance={true}
+                accountStatus="address"
+                chainStatus="icon"
+              />
             </div>
           ) : (
             <>
