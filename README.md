@@ -2,8 +2,10 @@
 
 A decentralized platform where supporters can send you tokens as appreciation, similar to "buy me a coffee" but with crypto tokens. Built with Next.js for the frontend and Hardhat for smart contracts, deployed on Vercel and Sepolia Network respectively.
 
-#### Preview Link [https://buy-me-token.vercel.app/]
-#### Make sure to Star the Repository
+#### (Preview Link)[https://buy-me-token.vercel.app/]
+#### Make sure to Star the Repository ⭐️
+
+
 
 ## Features
 
