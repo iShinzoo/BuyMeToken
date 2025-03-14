@@ -2,10 +2,11 @@
 
 A decentralized platform where supporters can send you tokens as appreciation, similar to "buy me a coffee" but with crypto tokens. Built with Next.js for the frontend and Hardhat for smart contracts, deployed on Vercel and Sepolia Network respectively.
 
-#### (Preview Link)[https://buy-me-token.vercel.app/]
+- [Preview Link](https://buy-me-token.vercel.app/)
 #### Make sure to Star the Repository ⭐️
 
 
+![/public/screenshot.png](https://github.com/iShinzoo/BuyMeToken/blob/main/BuyMeMock.png)
 
 ## Features
 
@@ -59,12 +60,8 @@ A decentralized platform where supporters can send you tokens as appreciation, s
    npm install
    ```
 
-## Contributing
-* Fork the repository
-* Create your feature branch (git checkout -b feature/amazing-feature)
-* Commit your changes (git commit -m 'Add some amazing feature')
-* Push to the branch (git push origin feature/amazing-feature)
-* Open a Pull Request
+## 🤝 Contributing
+   - We welcome contributions! Check out our [CONTRIBUTING.md](https://github.com/iShinzoo/BuyMeToken/blob/main/CONTRIBUTING.md) for guidelines.
 
 ## Acknowledgements
 * Inspired by BuyMeCoffee
